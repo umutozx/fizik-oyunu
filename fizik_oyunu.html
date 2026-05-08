@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hareket Kavramları - Soru Cevap Oyunu</title>
+<style>
+  :root {
+    --pink-bg: #F8D8DE;
+    --pink-bg-light: #FDEAEE;
+    --pink-deep: #B83D5E;
+    --pink-deep-dark: #8E2A45;
+    --peach: #F5A88A;
+    --cream: #FFF7F2;
+    --ink: #3A1820;
+    --green-good: #4A8B6F;
+    --red-bad: #C4564A;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Tahoma, sans-serif;
+    background: var(--pink-bg);
+    background-image:
+      radial-gradient(circle at 15% 20%, rgba(245,168,138,0.25) 0%, transparent 40%),
+      radial-gradient(circle at 85% 80%, rgba(184,61,94,0.12) 0%, transparent 45%);
+    min-height: 100vh;
+    color: var(--ink);
+    padding: 24px 16px;
+    overflow-x: hidden;
+  }
+
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  /* ─── HEADER ─── */
+  .header {
+    text-align: center;
+    margin-bottom: 32px;
+    position: relative;
+  }
+
+  .eyebrow {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Tahoma, sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--pink-deep);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+
+  .title {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-weight: 900;
+    font-size: clamp(36px, 6vw, 56px);
+    line-height: 0.95;
+    color: var(--pink-deep-dark);
+    letter-spacing: -0.02em;
+  }
+
+  .title em {
+    font-style: italic;
+    font-weight: 400;
+    color: var(--peach);
+  }
+
+  .subtitle {
+    font-size: 14px;
+    color: var(--ink);
+    opacity: 0.7;
+    margin-top: 12px;
+  }
+
+  /* ─── PROGRESS ─── */
+  .progress-wrap {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    background: var(--cream);
+    padding: 14px 20px;
+    border-radius: 100px;
+    border: 2px solid var(--pink-deep);
+    box-shadow: 4px 4px 0 var(--pink-deep);
+  }
+
+  .progress-text {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--pink-deep-dark);
+  }
+
+  .score-badge {
+    background: var(--pink-deep);
+    color: var(--cream);
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.05em;
+  }
+
+  .progress-bar {
+    height: 6px;
+    background: var(--pink-bg);
+    border-radius: 100px;
+    overflow: hidden;
+    margin-bottom: 24px;
+    border: 1px solid rgba(184,61,94,0.2);
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--peach), var(--pink-deep));
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 100px;
+  }
+
+  /* ─── QUESTION CARD ─── */
+  .card {
+    background: var(--cream);
+    border-radius: 24px;
+    padding: 32px 28px;
+    border: 2px solid var(--pink-deep);
+    box-shadow: 6px 6px 0 var(--pink-deep);
+    position: relative;
+    animation: cardIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .scenario-tag {
+    display: inline-block;
+    background: var(--pink-bg);
+    color: var(--pink-deep-dark);
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .question-text {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: clamp(20px, 3.5vw, 26px);
+    line-height: 1.35;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 28px;
+  }
+
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .option {
+    background: var(--pink-bg-light);
+    border: 2px solid var(--pink-bg);
+    border-radius: 14px;
+    padding: 16px 20px;
+    text-align: left;
+    cursor: pointer;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Tahoma, sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--ink);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+  }
+
+  .option:hover:not(:disabled) {
+    background: var(--pink-bg);
+    border-color: var(--pink-deep);
+    transform: translateX(4px);
+  }
+
+  .option:disabled {
+    cursor: not-allowed;
+  }
+
+  .option-letter {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--cream);
+    border: 2px solid var(--pink-deep);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--pink-deep);
+    flex-shrink: 0;
+    font-family: Georgia, 'Times New Roman', serif;
+  }
+
+  .option.correct {
+    background: #DFF0E5;
+    border-color: var(--green-good);
+    animation: correctPulse 0.5s ease;
+  }
+
+  .option.correct .option-letter {
+    background: var(--green-good);
+    color: white;
+    border-color: var(--green-good);
+  }
+
+  .option.wrong {
+    background: #F8DDD9;
+    border-color: var(--red-bad);
+    animation: wrongShake 0.4s ease;
+  }
+
+  .option.wrong .option-letter {
+    background: var(--red-bad);
+    color: white;
+    border-color: var(--red-bad);
+  }
+
+  @keyframes correctPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+  }
+
+  @keyframes wrongShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+  }
+
+  /* ─── EXPLANATION ─── */
+  .explanation {
+    margin-top: 22px;
+    padding: 20px;
+    background: var(--pink-bg);
+    border-radius: 14px;
+    border-left: 4px solid var(--pink-deep);
+    animation: cardIn 0.4s ease;
+    display: none;
+  }
+
+  .explanation.show {
+    display: block;
+  }
+
+  .explanation-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--pink-deep);
+    margin-bottom: 8px;
+  }
+
+  .explanation-text {
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--ink);
+  }
+
+  .next-btn {
+    margin-top: 20px;
+    background: var(--pink-deep);
+    color: var(--cream);
+    border: none;
+    padding: 14px 28px;
+    border-radius: 100px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Tahoma, sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.2s ease;
+    letter-spacing: 0.05em;
+  }
+
+  .next-btn:hover {
+    background: var(--pink-deep-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(184,61,94,0.3);
+  }
+
+  /* ─── RESULT SCREEN ─── */
+  .result-screen {
+    text-align: center;
+    padding: 48px 32px;
+    background: var(--cream);
+    border-radius: 28px;
+    border: 2px solid var(--pink-deep);
+    box-shadow: 6px 6px 0 var(--pink-deep);
+    animation: cardIn 0.6s ease;
+  }
+
+  .result-emoji {
+    font-size: 64px;
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  .result-score {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 72px;
+    font-weight: 900;
+    color: var(--pink-deep-dark);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .result-score em {
+    font-style: italic;
+    font-weight: 400;
+    color: var(--peach);
+    font-size: 0.5em;
+  }
+
+  .result-title {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--pink-deep-dark);
+    margin-bottom: 12px;
+  }
+
+  .result-message {
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--ink);
+    opacity: 0.8;
+    margin-bottom: 28px;
+    max-width: 460px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .restart-btn {
+    background: var(--pink-deep);
+    color: var(--cream);
+    border: none;
+    padding: 16px 36px;
+    border-radius: 100px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Tahoma, sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    letter-spacing: 0.05em;
+  }
+
+  .restart-btn:hover {
+    background: var(--pink-deep-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(184,61,94,0.3);
+  }
+
+  .hidden { display: none !important; }
+
+  /* ─── DECORATION ─── */
+  .deco {
+    position: absolute;
+    pointer-events: none;
+    opacity: 0.4;
+  }
+
+  .deco-1 {
+    top: -10px;
+    right: -8px;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-style: italic;
+    font-size: 20px;
+    color: var(--peach);
+    transform: rotate(8deg);
+  }
+
+  @media (max-width: 480px) {
+    body { padding: 16px 12px; }
+    .card { padding: 24px 20px; }
+    .progress-wrap { padding: 12px 16px; flex-wrap: wrap; gap: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- INTRO SCREEN -->
+  <div id="intro-screen">
+    <div class="header">
+      <div class="eyebrow">Fizik · 9. Sınıf</div>
+      <h1 class="title">Hareketin <em>Sırları</em></h1>
+      <p class="subtitle">Sürat, hız ve ivme — günlük hayattan 10 soru</p>
+    </div>
+
+    <div class="result-screen">
+      <span class="result-emoji">🚗💨</span>
+      <h2 class="result-title">Hazır mısın?</h2>
+      <p class="result-message">
+        Karşına çıkacak 10 soru sokakta yürürken, otobüse yetişirken, asansörde hatta lunaparkta yaşadığın olaylardan. Sürat mi, hız mı yoksa ivme mi? Bakalım ayırt edebilecek misin!
+      </p>
+      <button class="restart-btn" onclick="startGame()">Oyuna Başla →</button>
+    </div>
+  </div>
+
+  <!-- GAME SCREEN -->
+  <div id="game-screen" class="hidden">
+    <div class="progress-wrap">
+      <span class="progress-text">Soru <span id="current-q">1</span> / 10</span>
+      <span class="score-badge"><span id="score">0</span> PUAN</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill" style="width: 10%"></div>
+    </div>
+
+    <div class="card" id="question-card">
+      <span class="scenario-tag" id="scenario-tag">SENARYO</span>
+      <h2 class="question-text" id="question-text"></h2>
+      <div class="options" id="options"></div>
+      <div class="explanation" id="explanation">
+        <div class="explanation-label" id="exp-label">Açıklama</div>
+        <p class="explanation-text" id="explanation-text"></p>
+        <button class="next-btn" id="next-btn" onclick="nextQuestion()">Sonraki Soru →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULT SCREEN -->
+  <div id="result-screen-wrap" class="hidden">
+    <div class="header">
+      <div class="eyebrow">Oyun Bitti</div>
+      <h1 class="title">Sonuç <em>Zamanı</em></h1>
+    </div>
+
+    <div class="result-screen">
+      <span class="result-emoji" id="final-emoji">🎉</span>
+      <div class="result-score"><span id="final-score">0</span><em>/100</em></div>
+      <h2 class="result-title" id="final-title">Harika!</h2>
+      <p class="result-message" id="final-message"></p>
+      <button class="restart-btn" onclick="restartGame()">Tekrar Oyna ↻</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const questions = [
+  {
+    tag: "OKUL YOLU",
+    q: "Evden okula yürüyorsun. Telefonun 'son 10 dakikada 800 metre yürüdün, kuzeye 600 metre yer değiştirdin' diyor. 10 dakikalık ortalama süratin ne olur?",
+    options: [
+      "60 m/dk",
+      "1,33 m/dk",
+      "80 m/dk",
+      "140 m/dk"
+    ],
+    correct: 2,
+    explanation: "Ortalama sürat = alınan yol / geçen zaman = 800 m / 10 dk = 80 m/dk. Ortalama hızı sorsaydı yer değiştirme kullanılırdı (600/10 = 60 m/dk). Yol her zaman yer değiştirmeden büyük ya da eşit olduğu için sürat ≥ hız büyüklüğüdür."
+  },
+  {
+    tag: "PİSTTE KOŞU",
+    q: "400 metrelik pistte tam bir tur atan atletin yer değiştirmesi nedir?",
+    options: [
+      "0 metre",
+      "200 metre",
+      "400 metre",
+      "800 metre"
+    ],
+    correct: 0,
+    explanation: "Yer değiştirme, başlangıç ile bitiş noktası arasındaki yönlü uzaklıktır. Atlet aynı yere döndüğü için yer değiştirme sıfırdır. Ancak aldığı yol 400 metredir. Bu, yol ile yer değiştirme arasındaki en güzel örnektir!"
+  },
+  {
+    tag: "TRAFİK IŞIĞI",
+    q: "Kırmızı ışıkta duran araba yeşil yanınca 4 saniyede 0'dan 20 m/s hıza ulaşıyor. Aracın ivmesi kaç m/s²?",
+    options: [
+      "4 m/s²",
+      "16 m/s²",
+      "80 m/s²",
+      "5 m/s²"
+    ],
+    correct: 3,
+    explanation: "İvme = hız değişimi / zaman = (20 - 0) / 4 = 5 m/s². Yani araç her saniye hızını 5 m/s artırıyor. Pozitif ivme hızlandığını gösterir."
+  },
+  {
+    tag: "ASANSÖR",
+    q: "Asansör 5. kattan 1. kata sabit hızla iniyor. Bu hareket için hangisi doğrudur?",
+    options: [
+      "İvmesi sıfırdır çünkü hız değişmiyor",
+      "İvmesi vardır çünkü aşağı iniyor",
+      "Hızı sıfırdır çünkü düz iniyor",
+      "Sürat ve hızı birbirinden farklıdır"
+    ],
+    correct: 0,
+    explanation: "İvme, hızdaki değişimdir. Asansör sabit hızla indiği için hızı değişmiyor, yani ivme sıfır. Hareket halinde olmak ivme olduğu anlamına gelmez — hızın DEĞİŞMESİ gerekir."
+  },
+  {
+    tag: "OTOBÜS DURAĞI",
+    q: "Otobüs durağa yaklaşırken yavaşlıyor. Bu durumda otobüsün ivmesi nasıldır?",
+    options: [
+      "İvmesi olamaz",
+      "Negatif (hız ile zıt yönde)",
+      "Pozitif, çünkü hareket ediyor",
+      "Sıfır, çünkü duracak"
+    ],
+    correct: 1,
+    explanation: "Yavaşlama da bir ivmedir! Hız azalıyorsa ivme, hızla zıt yöndedir — yani negatif ivme (yavaşlama ivmesi) söz konusudur. Buna fizikte 'ters ivme' veya 'yavaşlama' denir."
+  },
+  {
+    tag: "GPS NAVİGASYON",
+    q: "Eve 10 km mesafedeki bir yere arabayla gittin. 30 dakikada vardın, ortalama süratin 20 km/saat. Eğer aynı noktaya doğrudan kuş uçuşu 8 km olsaydı, ortalama hızının büyüklüğü ne olur?",
+    options: [
+      "20 km/saat",
+      "40 km/saat",
+      "16 km/saat",
+      "32 km/saat"
+    ],
+    correct: 2,
+    explanation: "Ortalama hız = yer değiştirme / zaman = 8 km / 0,5 saat = 16 km/saat. Ortalama sürat ise yol/zaman = 10/0,5 = 20 km/saat. Yol kıvrımlı olduğu için sürat hızdan büyüktür!"
+  },
+  {
+    tag: "LUNAPARK",
+    q: "Hız trenindeyken aniden hızlandığını omuzlarına basan kuvvetten hissediyorsun. Bu his neyin sonucudur?",
+    options: [
+      "Sabit hızın",
+      "Yer değiştirmenin",
+      "Yüksek süratin",
+      "Yüksek ivmenin"
+    ],
+    correct: 3,
+    explanation: "O sıkışma hissi ivmeden gelir! Sabit hızla giden bir uçakta hiçbir şey hissetmezsin. Ama ivme — yani hızdaki ani değişim — vücuduna kuvvet uygular. İşte bu yüzden hız treni heyecanlıdır, sadece hızlı olduğu için değil!"
+  },
+  {
+    tag: "BİSİKLET",
+    q: "Düz bir yolda saatte 15 km hızla giden bisikletli, sola dönerken yine saatte 15 km'de gidiyor. Hızı değişti mi?",
+    options: [
+      "Hayır, sürat aynı kaldığı için hız da aynı",
+      "Hayır, yer değiştirme aynı",
+      "Evet, yön değiştiği için hız değişti",
+      "Sadece ivmesi değişti"
+    ],
+    correct: 2,
+    explanation: "Hız vektörel bir büyüklüktür: hem büyüklük (sürat) hem yön içerir. Yön değişirse büyüklük aynı kalsa bile HIZ değişmiş olur. Bu yüzden virajda araba 'sallanır' — çünkü ivme vardır."
+  },
+  {
+    tag: "SERBEST DÜŞME",
+    q: "Balkondan düşürülen elma yere doğru düşerken her saniye daha hızlı gider. Bunun sebebi nedir?",
+    options: [
+      "Hava direnci elmaya hız verir",
+      "Elmanın ağırlığı artar",
+      "Yer çekimi sabit ivme uygular (~10 m/s²)",
+      "Elma kendi süratini artırır"
+    ],
+    correct: 2,
+    explanation: "Yer çekimi, düşen tüm cisimlere yaklaşık 10 m/s² (kesin değeri 9,81 m/s²) sabit bir ivme uygular. Yani elma her saniye hızını yaklaşık 10 m/s artırır. 1. saniye sonunda ~10 m/s, 2. saniye sonunda ~20 m/s..."
+  },
+  {
+    tag: "SON SORU",
+    q: "Bir koşucu 100 metreyi 10 saniyede koşuyor. Aşağıdakilerden hangisi DOĞRU bir yorumdur?",
+    options: [
+      "Yer değiştirmesi sıfırdır",
+      "Ortalama sürati 10 m/s'dir, ama anlık süratler farklı olabilir",
+      "Hızı yön içermediği için skaler olur",
+      "Koşucunun anlık ivmesi 10 m/s²'dir"
+    ],
+    correct: 1,
+    explanation: "Ortalama sürat = 100/10 = 10 m/s. Ama koşucu başlangıçta yavaş, ortada hızlı, sonda biraz daha yavaş olabilir. Yani anlık sürat her noktada farklı olabilir. Bu, ortalama ile anlık değer arasındaki kritik farktır!"
+  }
+];
+
+let currentQuestion = 0;
+let score = 0;
+let answered = false;
+
+function startGame() {
+  document.getElementById('intro-screen').classList.add('hidden');
+  document.getElementById('game-screen').classList.remove('hidden');
+  loadQuestion();
+}
+
+function loadQuestion() {
+  answered = false;
+  const q = questions[currentQuestion];
+
+  document.getElementById('current-q').textContent = currentQuestion + 1;
+  document.getElementById('progress-fill').style.width = ((currentQuestion + 1) / questions.length * 100) + '%';
+  document.getElementById('scenario-tag').textContent = q.tag;
+  document.getElementById('question-text').textContent = q.q;
+  document.getElementById('explanation').classList.remove('show');
+
+  const optionsDiv = document.getElementById('options');
+  optionsDiv.innerHTML = '';
+  const letters = ['A', 'B', 'C', 'D'];
+
+  q.options.forEach((opt, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'option';
+    btn.innerHTML = `<span class="option-letter">${letters[idx]}</span><span>${opt}</span>`;
+    btn.onclick = () => selectAnswer(idx);
+    optionsDiv.appendChild(btn);
+  });
+
+  // Re-mount card for animation
+  const card = document.getElementById('question-card');
+  card.style.animation = 'none';
+  card.offsetHeight;
+  card.style.animation = '';
+}
+
+function selectAnswer(idx) {
+  if (answered) return;
+  answered = true;
+
+  const q = questions[currentQuestion];
+  const buttons = document.querySelectorAll('.option');
+
+  buttons.forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === q.correct) {
+      btn.classList.add('correct');
+    } else if (i === idx && i !== q.correct) {
+      btn.classList.add('wrong');
+    }
+  });
+
+  const isCorrect = idx === q.correct;
+  if (isCorrect) {
+    score += 10;
+    document.getElementById('score').textContent = score;
+    document.getElementById('exp-label').textContent = '✓ Doğru!';
+    document.getElementById('exp-label').style.color = 'var(--green-good)';
+  } else {
+    document.getElementById('exp-label').textContent = '✗ Doğru cevap: ' + ['A','B','C','D'][q.correct];
+    document.getElementById('exp-label').style.color = 'var(--red-bad)';
+  }
+
+  document.getElementById('explanation-text').textContent = q.explanation;
+  document.getElementById('explanation').classList.add('show');
+
+  if (currentQuestion === questions.length - 1) {
+    document.getElementById('next-btn').textContent = 'Sonucu Gör →';
+  }
+}
+
+function nextQuestion() {
+  currentQuestion++;
+  if (currentQuestion >= questions.length) {
+    showResult();
+  } else {
+    loadQuestion();
+  }
+}
+
+function showResult() {
+  document.getElementById('game-screen').classList.add('hidden');
+  document.getElementById('result-screen-wrap').classList.remove('hidden');
+
+  document.getElementById('final-score').textContent = score;
+
+  let emoji, title, message;
+  if (score === 100) {
+    emoji = '🏆';
+    title = 'Mükemmel!';
+    message = 'Tam puan! Sürat, hız ve ivme arasındaki farkı tamamen kavramışsın. Fizik öğretmenin gurur duyacak!';
+  } else if (score >= 80) {
+    emoji = '⭐';
+    title = 'Çok İyi!';
+    message = 'Konuyu büyük ölçüde anlamışsın. Eksik kaldığın yerlere bir kez daha göz atarsan zirveye çıkarsın.';
+  } else if (score >= 60) {
+    emoji = '👍';
+    title = 'Fena Değil!';
+    message = 'Temelleri öğrenmişsin ama bazı kavramlar (özellikle vektörel/skaler ayrımı ya da ivme yorumu) biraz daha pekişmeli.';
+  } else if (score >= 40) {
+    emoji = '📚';
+    title = 'Tekrar Lazım';
+    message = 'Bazı kavramlar henüz oturmamış. Sunumdaki sürat-hız karşılaştırma slaytına ve günlük hayat örneklerine tekrar bakmanı öneririm.';
+  } else {
+    emoji = '💪';
+    title = 'Pes Etme!';
+    message = 'Yeniden başlamak en iyisi. Sürat, hız ve ivme tanımlarını bir kez daha gözden geçirip oyunu tekrar dene. Her tekrarda biraz daha öğreneceksin.';
+  }
+
+  document.getElementById('final-emoji').textContent = emoji;
+  document.getElementById('final-title').textContent = title;
+  document.getElementById('final-message').textContent = message;
+}
+
+function restartGame() {
+  currentQuestion = 0;
+  score = 0;
+  document.getElementById('score').textContent = '0';
+  document.getElementById('result-screen-wrap').classList.add('hidden');
+  document.getElementById('intro-screen').classList.remove('hidden');
+}
+</script>
+
+</body>
+</html>
